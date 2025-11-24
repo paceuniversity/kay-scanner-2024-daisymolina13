@@ -137,6 +137,10 @@ public class TokenStream {
 				return t;
 
 			default: // all other operators
+				if (nextChar == '*') {
+					nextChar = readChar();
+					return t;
+				}
 				nextChar = readChar();
 				return t;
 			}
@@ -177,6 +181,12 @@ public class TokenStream {
 			}
 			// An Integer-Literal is to be only followed by a space,
 			// an operator, or a separator.
+			if (nextChar == '.') {
+				t.setType("Other");
+				t.setValue(t.getValue() + ".");
+				nextChar = readChar();
+				return t;
+			}
 			if (isEndOfToken(nextChar)) {// If token is valid, returns.
 				return t;
 			} 
@@ -233,7 +243,7 @@ public class TokenStream {
 	}
 
 	private boolean isEndOfToken(char c) { // Is the value a seperate token?
-		return (isWhiteSpace(nextChar) || isOperator(nextChar) || isSeparator(nextChar) || isEof);
+		return (isWhiteSpace(c) || isOperator(c) || isSeparator(c) || isEof);
 	}
 
 	private void skipWhiteSpace() {
