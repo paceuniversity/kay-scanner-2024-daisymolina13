@@ -76,8 +76,24 @@ public class TokenStream {
 				// <=
 			case '>':
 				// >=
+				nextChar = readChar();
+				if (nextChar == '=') {
+					t.setValue(t.getValue() + "=");
+					nextChar = readChar();
+				}
+				return t;
+
 			case '=':
 				// ==
+				nextChar = readChar();
+				if (nextChar == '=') {
+					t.setValue("==");
+					nextChar = readChar();
+					return t;
+				} else {
+					t.setType("Other");
+					return t;
+				}
 			case '!':
 				// !=
 				nextChar = readChar();
@@ -102,25 +118,22 @@ public class TokenStream {
 				// Look for ||
 				nextChar = readChar();
 				if (nextChar == '|') {
-					t.setValue(t.getValue() + nextChar);
+					t.setValue("||");
 					nextChar = readChar();
 					return t;
-				} else {
-					t.setType("Other");
 				}
+				t.setType("Other");
 				return t;
 
 			case '&':
 				// Look or &&
 				nextChar = readChar();
 				if (nextChar == '&') {
-					t.setValue(t.getValue() + nextChar);
+					t.setValue("&&");
 					nextChar = readChar();
 					return t;
-				} else {
-					t.setType("Other");
 				}
-
+				t.setType("Other");
 				return t;
 
 			default: // all other operators
@@ -235,7 +248,7 @@ public class TokenStream {
 	}
 
 	private boolean isOperator(char c) {
-		return (c == '+' || c == '-' || c == '*' || c == '/' || c == '<' || c == '>' || c == '=' || c == '!' || c == '&' || c == '|' || c == ':');
+		return (c == '+' || c == '-' || c == '*' || c == '/' || c == '<' || c == '>' || c == '!' || c == '&' || c == '|' || c == ':');
 	}
 
 	private boolean isLetter(char c) {
