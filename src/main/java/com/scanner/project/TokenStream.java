@@ -1,4 +1,6 @@
 package com.scanner.project;
+// TokenStream.java
+// Daisy Molina & Uday Brathwaite
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -11,9 +13,8 @@ public class TokenStream {
     private char nextChar = ' ';
     private BufferedReader input;
 
-    private static final String[] keywords = {
-            "bool", "else", "if", "integer", "main", "while"
-    };
+    private static final String[] keywords =
+            { "bool", "else", "if", "integer", "main", "while" };
 
     public boolean isEoFile() {
         return isEof;
@@ -22,7 +23,7 @@ public class TokenStream {
     public TokenStream(String fileName) {
         try {
             input = new BufferedReader(new FileReader(fileName));
-            nextChar = readChar();
+            nextChar = readChar();    // IMPORTANT
         } catch (FileNotFoundException e) {
             System.out.println("File not found: " + fileName);
             isEof = true;
@@ -30,13 +31,13 @@ public class TokenStream {
     }
 
     public Token nextToken() {
+
         Token t = new Token();
         t.setType("Other");
         t.setValue("");
 
         skipWhiteSpace();
-
-        // --- COMMENTS ---
+		// single line comments
         while (nextChar == '/') {
             nextChar = readChar();
             if (nextChar == '/') {
@@ -51,29 +52,19 @@ public class TokenStream {
                 return t;
             }
         }
-
-        // --- DOUBLE STAR ("**") ---
+		// double star
         if (nextChar == '*') {
-            char first = nextChar;
             nextChar = readChar();
-            if (nextChar == '*') {
-                // return first "*"
-                Token star1 = new Token();
-                star1.setType("Operator");
-                star1.setValue("*");
-                return star1;
-            }
-            // normal "*"
-            t.setType("Operator");
-            t.setValue("*");
-            return t;
+            Token star = new Token();
+            star.setType("Operator");
+            star.setValue("*");
+            return star;
         }
-
-        // --- OPERATORS ---
+		//  operators
         if (isOperator(nextChar)) {
+
             char c = nextChar;
             t.setValue("" + c);
-            t.setType("Operator");
             nextChar = readChar();
 
             switch (c) {
@@ -81,90 +72,93 @@ public class TokenStream {
             case '<':
             case '>':
                 if (nextChar == '=') {
+                    t.setType("Operator");
                     t.setValue(c + "=");
                     nextChar = readChar();
-                }
+                } else t.setType("Operator");
                 return t;
 
             case '=':
                 if (nextChar == '=') {
+                    t.setType("Operator");
                     t.setValue("==");
                     nextChar = readChar();
-                    return t;
+                } else {
+                    t.setType("Other");
                 }
-                t.setType("Other"); // single '=' is Other
                 return t;
 
             case '!':
                 if (nextChar == '=') {
+                    t.setType("Operator");
                     t.setValue("!=");
                     nextChar = readChar();
-                }
+                } else t.setType("Operator");
                 return t;
 
             case ':':
                 if (nextChar == '=') {
+                    t.setType("Operator");
                     t.setValue(":=");
                     nextChar = readChar();
-                } else {
-                    t.setType("Other");
-                }
+                } else t.setType("Other");
                 return t;
 
             case '&':
                 if (nextChar == '&') {
+                    t.setType("Operator");
                     t.setValue("&&");
                     nextChar = readChar();
-                } else {
-                    t.setType("Other");
-                }
+                } else t.setType("Other");
                 return t;
 
             case '|':
                 if (nextChar == '|') {
+                    t.setType("Operator");
                     t.setValue("||");
                     nextChar = readChar();
-                } else {
-                    t.setType("Other");
-                }
+                } else t.setType("Other");
                 return t;
 
             default:
+                t.setType("Operator");
                 return t;
             }
         }
-
-        // --- SEPARATORS ---
+		//  separators
         if (isSeparator(nextChar)) {
             t.setType("Separator");
             t.setValue("" + nextChar);
             nextChar = readChar();
             return t;
         }
-
-        // --- IDENTIFIERS / KEYWORDS / TRUE/FALSE ---
+		//  identifiers and keywords
         if (isLetter(nextChar)) {
             t.setType("Identifier");
+
             while (isLetter(nextChar) || isDigit(nextChar)) {
                 t.setValue(t.getValue() + nextChar);
                 nextChar = readChar();
             }
+
             if (isKeyword(t.getValue()))
                 t.setType("Keyword");
             else if (t.getValue().equals("True") || t.getValue().equals("False"))
                 t.setType("Literal");
+
             return t;
         }
+        //   integers and decimals
 
-        // --- NUMBERS + DECIMAL CASE ---
         if (isDigit(nextChar)) {
             t.setType("Literal");
+
             while (isDigit(nextChar)) {
                 t.setValue(t.getValue() + nextChar);
                 nextChar = readChar();
             }
 
-            // decimal case: 2.5 is Other("2.") Literal("5")
+            // decimal: convert to Other("2.") then Literal("5")
             if (nextChar == '.') {
                 t.setType("Other");
                 t.setValue(t.getValue() + ".");
@@ -175,10 +169,8 @@ public class TokenStream {
             return t;
         }
 
-        // --- UNKNOWN / OTHER ---
-        if (isEof) {
-            return t;
-        }
+		// other cases
+        if (isEof) return t;
 
         while (!isEndOfToken(nextChar) && !isEof) {
             t.setValue(t.getValue() + nextChar);
@@ -189,20 +181,20 @@ public class TokenStream {
         return t;
     }
 
+    //   helpers
+
     private char readChar() {
         int i = 0;
-        if (isEof)
-            return (char) 0;
-        try {
-            i = input.read();
-        } catch (IOException e) {
-            System.exit(-1);
-        }
+        if (isEof) return (char)0;
+
+        try { i = input.read(); }
+        catch (IOException e) { System.exit(-1); }
+
         if (i == -1) {
             isEof = true;
-            return (char) 0;
+            return (char)0;
         }
-        return (char) i;
+        return (char)i;
     }
 
     private boolean isKeyword(String s) {
@@ -213,15 +205,15 @@ public class TokenStream {
     }
 
     private boolean isWhiteSpace(char c) {
-        return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f';
+        return c==' ' || c=='\t' || c=='\r' || c=='\n' || c=='\f';
     }
 
     private boolean isEndOfLine(char c) {
-        return c == '\r' || c == '\n' || c == '\f';
+        return c=='\r' || c=='\n' || c=='\f';
     }
 
     private boolean isEndOfToken(char c) {
-        return isWhiteSpace(c) || isOperator(c) || isSeparator(c) || isEof;
+        return isWhiteSpace(c) || isSeparator(c) || isEof;
     }
 
     private void skipWhiteSpace() {
@@ -231,21 +223,21 @@ public class TokenStream {
     }
 
     private boolean isSeparator(char c) {
-        return c == '(' || c == ')' || c == '{' || c == '}' || c == ';' || c == ',';
+        return c=='(' || c==')' || c=='{' || c=='}' || c==';' || c==',';
     }
 
     private boolean isOperator(char c) {
-        return c == '+' || c == '-' || c == '*' || c == '/' ||
-               c == '<' || c == '>' || c == '!' || c == '&' ||
-               c == '|' || c == ':';
+        return c=='+' || c=='-' || c=='*' || c=='/' ||
+               c=='<' || c=='>' || c=='!' || c=='&' ||
+               c=='|' || c==':';
     }
 
     private boolean isLetter(char c) {
-        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+        return (c>='a' && c<='z') || (c>='A' && c<='Z');
     }
 
     private boolean isDigit(char c) {
-        return c >= '0' && c <= '9';
+        return (c>='0' && c<='9');
     }
 
     public boolean isEndofFile() {
