@@ -92,7 +92,7 @@ public class TokenStream {
                     nextChar = readChar();
                     return t;
                 }
-                t.setType("Other"); // single '=' → Other
+                t.setType("Other"); // single '=' is Other
                 return t;
 
             case '!':
@@ -164,7 +164,7 @@ public class TokenStream {
                 nextChar = readChar();
             }
 
-            // decimal case: 2.5 → Other("2.") Literal("5")
+            // decimal case: 2.5 is Other("2.") Literal("5")
             if (nextChar == '.') {
                 t.setType("Other");
                 t.setValue(t.getValue() + ".");
